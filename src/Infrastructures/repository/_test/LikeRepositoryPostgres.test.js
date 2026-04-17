@@ -1,6 +1,8 @@
 import UsersTableTestHelper from '../../../../tests/UsersTableTestHelper.js';
+import AuthenticationsTableTestHelper from '../../../../tests/AuthenticationsTableTestHelper.js';
 import ThreadsTableTestHelper from '../../../../tests/ThreadsTableTestHelper.js';
 import CommentsTableTestHelper from '../../../../tests/CommentsTableTestHelper.js';
+import RepliesTableTestHelper from '../../../../tests/RepliesTableTestHelper.js';
 import LikesTableTestHelper from '../../../../tests/LikesTableTestHelper.js';
 import pool from '../../database/postgres/pool.js';
 import LikeRepositoryPostgres from '../LikeRepositoryPostgres.js';
@@ -14,8 +16,10 @@ describe('LikeRepositoryPostgres', () => {
 
   afterEach(async () => {
     await LikesTableTestHelper.cleanTable();
+    await RepliesTableTestHelper.cleanTable();
     await CommentsTableTestHelper.cleanTable();
     await ThreadsTableTestHelper.cleanTable();
+    await AuthenticationsTableTestHelper.cleanTable();
     await UsersTableTestHelper.cleanTable();
   });
 

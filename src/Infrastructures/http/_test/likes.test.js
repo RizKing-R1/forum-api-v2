@@ -3,6 +3,7 @@ import UsersTableTestHelper from '../../../../tests/UsersTableTestHelper.js';
 import AuthenticationsTableTestHelper from '../../../../tests/AuthenticationsTableTestHelper.js';
 import ThreadsTableTestHelper from '../../../../tests/ThreadsTableTestHelper.js';
 import CommentsTableTestHelper from '../../../../tests/CommentsTableTestHelper.js';
+import RepliesTableTestHelper from '../../../../tests/RepliesTableTestHelper.js';
 import LikesTableTestHelper from '../../../../tests/LikesTableTestHelper.js';
 import container from '../../container.js';
 import createServer from '../createServer.js';
@@ -11,6 +12,7 @@ import request from 'supertest';
 describe('/threads/{threadId}/comments/{commentId}/likes endpoint', () => {
   beforeAll(async () => {
     await LikesTableTestHelper.cleanTable();
+    await RepliesTableTestHelper.cleanTable();
     await CommentsTableTestHelper.cleanTable();
     await ThreadsTableTestHelper.cleanTable();
     await AuthenticationsTableTestHelper.cleanTable();
@@ -23,6 +25,7 @@ describe('/threads/{threadId}/comments/{commentId}/likes endpoint', () => {
 
   afterEach(async () => {
     await LikesTableTestHelper.cleanTable();
+    await RepliesTableTestHelper.cleanTable();
     await CommentsTableTestHelper.cleanTable();
     await ThreadsTableTestHelper.cleanTable();
     await AuthenticationsTableTestHelper.cleanTable();

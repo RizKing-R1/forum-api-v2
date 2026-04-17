@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import AddedComment from '../../Domains/comments/entities/AddedComment.js';
 import CommentRepository from '../../Domains/comments/CommentRepository.js';
 import NotFoundError from '../../Commons/exceptions/NotFoundError.js';
@@ -12,13 +11,13 @@ class CommentRepositoryPostgres extends CommentRepository {
   }
 
   async addComment(newComment) {
-    const { content, thread_id, owner } = newComment;
+    const { content, threadId, owner } = newComment;
     const id = `comment-${this._idGenerator()}`;
     const date = new Date().toISOString();
 
     const query = {
       text: 'INSERT INTO comments VALUES($1, $2, $3, $4, $5, $6) RETURNING id, content, owner',
-      values: [id, thread_id, content, owner, false, date],
+      values: [id, threadId, content, owner, false, date],
     };
 
     const result = await this._pool.query(query);
@@ -79,7 +78,14 @@ class CommentRepositoryPostgres extends CommentRepository {
 
     const result = await this._pool.query(query);
 
-    return result.rows;
+    return result.rows.map((row) => ({
+      id: row.id,
+      username: row.username,
+      date: row.date,
+      content: row.content,
+      isDelete: row.is_delete,
+      likeCount: Number(row.like_count),
+    }));
   }
 }
 

@@ -9,7 +9,7 @@
     "start:dev": "nodemon src/app.js",
     "test": "vitest --run --no-file-parallelism",
     "test:watch": "vitest --watch",
-    "test:coverage": "vitest --coverage",
+    "test:coverage": "vitest --run --coverage --no-file-parallelism",
     "migrate": "node-pg-migrate",
     "migrate:test": "node-pg-migrate --envPath .test.env",
     "lint": "eslint ./"

@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import { vi } from 'vitest';
 import NewComment from '../../../Domains/comments/entities/NewComment.js';
 import AddedComment from '../../../Domains/comments/entities/AddedComment.js';
@@ -10,7 +9,7 @@ describe('AddCommentUseCase', () => {
   it('should orchestrate the add comment action correctly', async () => {
     const useCasePayload = {
       content: 'sebuah komentar',
-      thread_id: 'thread-123',
+      threadId: 'thread-123',
       owner: 'user-123',
     };
 
@@ -40,10 +39,10 @@ describe('AddCommentUseCase', () => {
       content: useCasePayload.content,
       owner: useCasePayload.owner,
     }));
-    expect(mockThreadRepository.verifyThreadExists).toBeCalledWith(useCasePayload.thread_id);
+    expect(mockThreadRepository.verifyThreadExists).toBeCalledWith(useCasePayload.threadId);
     expect(mockCommentRepository.addComment).toBeCalledWith(new NewComment({
       content: useCasePayload.content,
-      thread_id: useCasePayload.thread_id,
+      threadId: useCasePayload.threadId,
       owner: useCasePayload.owner,
     }));
   });
@@ -51,7 +50,7 @@ describe('AddCommentUseCase', () => {
   it('should throw error when thread does not exist', async () => {
     const useCasePayload = {
       content: 'sebuah komentar',
-      thread_id: 'thread-xxx',
+      threadId: 'thread-xxx',
       owner: 'user-123',
     };
 
@@ -69,7 +68,7 @@ describe('AddCommentUseCase', () => {
 
     await expect(addCommentUseCase.execute(useCasePayload))
       .rejects.toThrowError('thread tidak ditemukan');
-    expect(mockThreadRepository.verifyThreadExists).toBeCalledWith(useCasePayload.thread_id);
+    expect(mockThreadRepository.verifyThreadExists).toBeCalledWith(useCasePayload.threadId);
     expect(mockCommentRepository.addComment).not.toBeCalled();
   });
 });

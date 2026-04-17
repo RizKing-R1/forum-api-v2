@@ -4,24 +4,18 @@ import AuthenticationsTableTestHelper from '../../../../tests/AuthenticationsTab
 import ThreadsTableTestHelper from '../../../../tests/ThreadsTableTestHelper.js';
 import CommentsTableTestHelper from '../../../../tests/CommentsTableTestHelper.js';
 import RepliesTableTestHelper from '../../../../tests/RepliesTableTestHelper.js';
+import LikesTableTestHelper from '../../../../tests/LikesTableTestHelper.js';
 import container from '../../container.js';
 import createServer from '../createServer.js';
 import request from 'supertest';
 
 describe('/threads/{threadId}/comments/{commentId}/replies endpoint', () => {
-  beforeAll(async () => {
-    await RepliesTableTestHelper.cleanTable();
-    await CommentsTableTestHelper.cleanTable();
-    await ThreadsTableTestHelper.cleanTable();
-    await AuthenticationsTableTestHelper.cleanTable();
-    await UsersTableTestHelper.cleanTable();
-  });
-
   afterAll(async () => {
     await pool.end();
   });
 
   afterEach(async () => {
+    await LikesTableTestHelper.cleanTable();
     await RepliesTableTestHelper.cleanTable();
     await CommentsTableTestHelper.cleanTable();
     await ThreadsTableTestHelper.cleanTable();
@@ -33,14 +27,12 @@ describe('/threads/{threadId}/comments/{commentId}/replies endpoint', () => {
     it('should response 201 and persisted reply', async () => {
       const server = await createServer(container);
 
-      // Register user
       await request(server).post('/users').send({
         username: 'dicoding',
         password: 'secret_password',
         fullname: 'Dicoding Indonesia',
       });
 
-      // Login to get access token
       const authResponse = await request(server).post('/authentications').send({
         username: 'dicoding',
         password: 'secret_password',
@@ -48,21 +40,18 @@ describe('/threads/{threadId}/comments/{commentId}/replies endpoint', () => {
 
       const { accessToken } = authResponse.body.data;
 
-      // Add thread
       const threadRes = await request(server)
         .post('/threads')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ title: 'A', body: 'B' });
       const threadId = threadRes.body.data.addedThread.id;
 
-      // Add comment
       const commentRes = await request(server)
         .post(`/threads/${threadId}/comments`)
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ content: 'komentar' });
       const commentId = commentRes.body.data.addedComment.id;
 
-      // Add Reply
       const response = await request(server)
         .post(`/threads/${threadId}/comments/${commentId}/replies`)
         .set('Authorization', `Bearer ${accessToken}`)
@@ -158,43 +147,35 @@ describe('/threads/{threadId}/comments/{commentId}/replies endpoint', () => {
     it('should delete reply and return 200', async () => {
       const server = await createServer(container);
 
-      // Arrange user/owner
       await request(server).post('/users').send({ username: 'dicoding', password: 'secret_password', fullname: 'Dicoding' });
       const authObj = await request(server).post('/authentications').send({ username: 'dicoding', password: 'secret_password' });
       const { accessToken } = authObj.body.data;
 
-      // Add thread
       const threadRes = await request(server).post('/threads').set('Authorization', `Bearer ${accessToken}`).send({ title: 'A', body: 'B' });
       const threadId = threadRes.body.data.addedThread.id;
 
-      // Add comment
       const commentRes = await request(server).post(`/threads/${threadId}/comments`).set('Authorization', `Bearer ${accessToken}`).send({ content: 'komentar' });
       const commentId = commentRes.body.data.addedComment.id;
 
-      // Add reply
       const replyRes = await request(server).post(`/threads/${threadId}/comments/${commentId}/replies`).set('Authorization', `Bearer ${accessToken}`).send({ content: 'balasan' });
       const replyId = replyRes.body.data.addedReply.id;
 
-      // Action
       const deleteRes = await request(server).delete(`/threads/${threadId}/comments/${commentId}/replies/${replyId}`).set('Authorization', `Bearer ${accessToken}`);
 
       expect(deleteRes.status).toEqual(200);
       expect(deleteRes.body.status).toEqual('success');
 
-      // Verify it was soft deleted
       const replies = await RepliesTableTestHelper.findReplyById(replyId);
-      expect(replies[0].is_delete).toEqual(true);
+      expect(replies[0].isDelete).toEqual(true);
     });
 
     it('should response 403 when trying to delete reply that is not theirs', async () => {
       const server = await createServer(container);
 
-      // Create owner user
       await request(server).post('/users').send({ username: 'owner', password: 'password', fullname: 'Owner' });
       const ownerAuth = await request(server).post('/authentications').send({ username: 'owner', password: 'password' });
       const ownerToken = ownerAuth.body.data.accessToken;
 
-      // Create other user
       await request(server).post('/users').send({ username: 'other', password: 'password', fullname: 'Other' });
       const otherAuth = await request(server).post('/authentications').send({ username: 'other', password: 'password' });
       const otherToken = otherAuth.body.data.accessToken;

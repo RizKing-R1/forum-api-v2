@@ -1,14 +1,12 @@
-/* eslint-disable camelcase */
-/* istanbul ignore file */
 import pool from '../src/Infrastructures/database/postgres/pool.js';
 
 const CommentsTableTestHelper = {
   async addComment({
-    id = 'comment-123', thread_id = 'thread-123', content = 'sebuah komentar', owner = 'user-123', is_delete = false, date = '2021-08-08T07:19:09.775Z',
+    id = 'comment-123', threadId = 'thread-123', content = 'sebuah komentar', owner = 'user-123', isDelete = false, date = '2021-08-08T07:19:09.775Z',
   }) {
     const query = {
       text: 'INSERT INTO comments VALUES($1, $2, $3, $4, $5, $6)',
-      values: [id, thread_id, content, owner, is_delete, date],
+      values: [id, threadId, content, owner, isDelete, date],
     };
 
     await pool.query(query);
@@ -21,11 +19,18 @@ const CommentsTableTestHelper = {
     };
 
     const result = await pool.query(query);
-    return result.rows;
+    return result.rows.map((row) => ({
+      id: row.id,
+      threadId: row.thread_id,
+      content: row.content,
+      owner: row.owner,
+      isDelete: row.is_delete,
+      date: row.date,
+    }));
   },
 
   async cleanTable() {
-    await pool.query('TRUNCATE TABLE comments CASCADE');
+    await pool.query('DELETE FROM comments WHERE 1=1');
   },
 };
 

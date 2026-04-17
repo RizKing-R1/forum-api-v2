@@ -3,23 +3,20 @@ import UsersTableTestHelper from '../../../../tests/UsersTableTestHelper.js';
 import AuthenticationsTableTestHelper from '../../../../tests/AuthenticationsTableTestHelper.js';
 import ThreadsTableTestHelper from '../../../../tests/ThreadsTableTestHelper.js';
 import CommentsTableTestHelper from '../../../../tests/CommentsTableTestHelper.js';
+import RepliesTableTestHelper from '../../../../tests/RepliesTableTestHelper.js';
+import LikesTableTestHelper from '../../../../tests/LikesTableTestHelper.js';
 import container from '../../container.js';
 import createServer from '../createServer.js';
 import request from 'supertest';
 
 describe('/threads/{threadId}/comments endpoint', () => {
-  beforeAll(async () => {
-    await CommentsTableTestHelper.cleanTable();
-    await ThreadsTableTestHelper.cleanTable();
-    await AuthenticationsTableTestHelper.cleanTable();
-    await UsersTableTestHelper.cleanTable();
-  });
-
   afterAll(async () => {
     await pool.end();
   });
 
   afterEach(async () => {
+    await LikesTableTestHelper.cleanTable();
+    await RepliesTableTestHelper.cleanTable();
     await CommentsTableTestHelper.cleanTable();
     await ThreadsTableTestHelper.cleanTable();
     await AuthenticationsTableTestHelper.cleanTable();
@@ -30,14 +27,12 @@ describe('/threads/{threadId}/comments endpoint', () => {
     it('should response 201 and persisted comment', async () => {
       const server = await createServer(container);
 
-      // Register user
       await request(server).post('/users').send({
         username: 'dicoding',
         password: 'secret_password',
         fullname: 'Dicoding Indonesia',
       });
 
-      // Login to get access token
       const authResponse = await request(server).post('/authentications').send({
         username: 'dicoding',
         password: 'secret_password',
@@ -45,7 +40,6 @@ describe('/threads/{threadId}/comments endpoint', () => {
 
       const { accessToken } = authResponse.body.data;
 
-      // Create a thread first
       const threadResponse = await request(server)
         .post('/threads')
         .set('Authorization', `Bearer ${accessToken}`)
@@ -53,13 +47,11 @@ describe('/threads/{threadId}/comments endpoint', () => {
 
       const { id: threadId } = threadResponse.body.data.addedThread;
 
-      // Action: Add comment to thread
       const response = await request(server)
         .post(`/threads/${threadId}/comments`)
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ content: 'sebuah komentar' });
 
-      // Assert
       expect(response.status).toEqual(201);
       expect(response.body.status).toEqual('success');
       expect(response.body.data.addedComment).toBeDefined();
@@ -69,14 +61,12 @@ describe('/threads/{threadId}/comments endpoint', () => {
     it('should response 404 when thread does not exist', async () => {
       const server = await createServer(container);
 
-      // Register user
       await request(server).post('/users').send({
         username: 'dicoding',
         password: 'secret_password',
         fullname: 'Dicoding Indonesia',
       });
 
-      // Login
       const authResponse = await request(server).post('/authentications').send({
         username: 'dicoding',
         password: 'secret_password',
@@ -84,13 +74,11 @@ describe('/threads/{threadId}/comments endpoint', () => {
 
       const { accessToken } = authResponse.body.data;
 
-      // Action: Add comment to non-existent thread
       const response = await request(server)
         .post('/threads/thread-xxx/comments')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ content: 'sebuah komentar' });
 
-      // Assert
       expect(response.status).toEqual(404);
       expect(response.body.status).toEqual('fail');
     });
@@ -144,20 +132,17 @@ describe('/threads/{threadId}/comments endpoint', () => {
       expect(deleteRes.status).toEqual(200);
       expect(deleteRes.body.status).toEqual('success');
 
-      // Verify it was soft deleted
       const comments = await CommentsTableTestHelper.findCommentById(commentId);
-      expect(comments[0].is_delete).toEqual(true);
+      expect(comments[0].isDelete).toEqual(true);
     });
 
     it('should response 403 when trying to delete comment that is not theirs', async () => {
       const server = await createServer(container);
 
-      // Create owner user
       await request(server).post('/users').send({ username: 'owner', password: 'password', fullname: 'Owner' });
       const ownerAuth = await request(server).post('/authentications').send({ username: 'owner', password: 'password' });
       const ownerToken = ownerAuth.body.data.accessToken;
 
-      // Create other user
       await request(server).post('/users').send({ username: 'other', password: 'password', fullname: 'Other' });
       const otherAuth = await request(server).post('/authentications').send({ username: 'other', password: 'password' });
       const otherToken = otherAuth.body.data.accessToken;

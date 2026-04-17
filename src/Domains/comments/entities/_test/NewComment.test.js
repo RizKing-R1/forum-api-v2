@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import NewComment from '../NewComment.js';
 
 describe('a NewComment entities', () => {
@@ -13,7 +12,7 @@ describe('a NewComment entities', () => {
   it('should throw error when payload did not meet data type specification', () => {
     const payload = {
       content: 123,
-      thread_id: 'thread-123',
+      threadId: 'thread-123',
       owner: 'user-123',
     };
 
@@ -23,14 +22,14 @@ describe('a NewComment entities', () => {
   it('should create newComment object correctly', () => {
     const payload = {
       content: 'sebuah komentar',
-      thread_id: 'thread-123',
+      threadId: 'thread-123',
       owner: 'user-123',
     };
 
     const newComment = new NewComment(payload);
 
     expect(newComment.content).toEqual(payload.content);
-    expect(newComment.thread_id).toEqual(payload.thread_id);
+    expect(newComment.threadId).toEqual(payload.threadId);
     expect(newComment.owner).toEqual(payload.owner);
   });
 });

@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import AddCommentUseCase from '../../../../Applications/use_case/AddCommentUseCase.js';
 import DeleteCommentUseCase from '../../../../Applications/use_case/DeleteCommentUseCase.js';
 import AuthenticationError from '../../../../Commons/exceptions/AuthenticationError.js';
@@ -31,7 +30,7 @@ class CommentsHandler {
       const addCommentUseCase = this._container.getInstance(AddCommentUseCase.name);
       const useCasePayload = {
         content: req.body.content,
-        thread_id: threadId,
+        threadId,
         owner,
       };
 

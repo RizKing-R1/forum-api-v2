@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import AddedReply from '../../Domains/replies/entities/AddedReply.js';
 import ReplyRepository from '../../Domains/replies/ReplyRepository.js';
 import NotFoundError from '../../Commons/exceptions/NotFoundError.js';
@@ -12,13 +11,13 @@ class ReplyRepositoryPostgres extends ReplyRepository {
   }
 
   async addReply(newReply) {
-    const { content, comment_id, owner } = newReply;
+    const { content, commentId, owner } = newReply;
     const id = `reply-${this._idGenerator()}`;
     const date = new Date().toISOString();
 
     const query = {
       text: 'INSERT INTO replies VALUES($1, $2, $3, $4, $5, $6) RETURNING id, content, owner',
-      values: [id, comment_id, content, owner, false, date],
+      values: [id, commentId, content, owner, false, date],
     };
 
     const result = await this._pool.query(query);
@@ -77,7 +76,14 @@ class ReplyRepositoryPostgres extends ReplyRepository {
     };
 
     const result = await this._pool.query(query);
-    return result.rows;
+    return result.rows.map((row) => ({
+      id: row.id,
+      commentId: row.comment_id,
+      content: row.content,
+      date: row.date,
+      username: row.username,
+      isDelete: row.is_delete,
+    }));
   }
 }
 

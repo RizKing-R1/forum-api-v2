@@ -23,7 +23,7 @@ const ThreadsTableTestHelper = {
   },
 
   async cleanTable() {
-    await pool.query('TRUNCATE TABLE threads CASCADE');
+    await pool.query('DELETE FROM threads WHERE 1=1');
   },
 };
 

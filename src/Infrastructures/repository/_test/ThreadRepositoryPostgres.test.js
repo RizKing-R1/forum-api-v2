@@ -1,5 +1,9 @@
-import ThreadsTableTestHelper from '../../../../tests/ThreadsTableTestHelper.js';
 import UsersTableTestHelper from '../../../../tests/UsersTableTestHelper.js';
+import AuthenticationsTableTestHelper from '../../../../tests/AuthenticationsTableTestHelper.js';
+import ThreadsTableTestHelper from '../../../../tests/ThreadsTableTestHelper.js';
+import CommentsTableTestHelper from '../../../../tests/CommentsTableTestHelper.js';
+import RepliesTableTestHelper from '../../../../tests/RepliesTableTestHelper.js';
+import LikesTableTestHelper from '../../../../tests/LikesTableTestHelper.js';
 import NewThread from '../../../Domains/threads/entities/NewThread.js';
 import AddedThread from '../../../Domains/threads/entities/AddedThread.js';
 import pool from '../../database/postgres/pool.js';
@@ -8,7 +12,11 @@ import NotFoundError from '../../../Commons/exceptions/NotFoundError.js';
 
 describe('ThreadRepositoryPostgres', () => {
   afterEach(async () => {
+    await LikesTableTestHelper.cleanTable();
+    await RepliesTableTestHelper.cleanTable();
+    await CommentsTableTestHelper.cleanTable();
     await ThreadsTableTestHelper.cleanTable();
+    await AuthenticationsTableTestHelper.cleanTable();
     await UsersTableTestHelper.cleanTable();
   });
 

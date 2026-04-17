@@ -1,8 +1,8 @@
 /* istanbul ignore file */
-/* v8 ignore file */
 import dotenv from 'dotenv';
 import path from 'path';
 
+/* v8 ignore start */
 if (process.env.NODE_ENV === 'test') {
   dotenv.config({
     path: path.resolve(process.cwd(), '.test.env'),
@@ -33,3 +33,4 @@ const config = {
 };
 
 export default config;
+/* v8 ignore stop */

@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import { vi } from 'vitest';
 import ThreadRepository from '../../../Domains/threads/ThreadRepository.js';
 import CommentRepository from '../../../Domains/comments/CommentRepository.js';
@@ -25,35 +24,35 @@ describe('GetThreadUseCase', () => {
         username: 'johndoe',
         date: '2021-08-08T07:22:33.555Z',
         content: 'sebuah komentar',
-        is_delete: false,
-        like_count: 2,
+        isDelete: false,
+        likeCount: 2,
       },
       {
         id: 'comment-2',
         username: 'dicoding',
         date: '2021-08-08T07:26:21.338Z',
         content: 'komentar ini akan dihapus',
-        is_delete: true,
-        like_count: 0,
+        isDelete: true,
+        likeCount: 0,
       },
     ];
 
     const mockReplies = [
       {
         id: 'reply-1',
-        comment_id: 'comment-1',
+        commentId: 'comment-1',
         content: 'sebuah balasan',
         date: '2021-08-08T07:23:33.555Z',
         username: 'dicoding',
-        is_delete: false,
+        isDelete: false,
       },
       {
         id: 'reply-2',
-        comment_id: 'comment-1',
+        commentId: 'comment-1',
         content: 'balasan dihapus',
         date: '2021-08-08T07:24:33.555Z',
         username: 'johndoe',
-        is_delete: true,
+        isDelete: true,
       },
     ];
 

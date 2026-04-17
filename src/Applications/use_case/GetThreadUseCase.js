@@ -18,15 +18,15 @@ class GetThreadUseCase {
         username: comment.username,
         date: comment.date,
         replies: [],
-        content: comment.is_delete ? '**komentar telah dihapus**' : comment.content,
-        likeCount: Number(comment.like_count || 0),
+        content: comment.isDelete ? '**komentar telah dihapus**' : comment.content,
+        likeCount: Number(comment.likeCount || 0),
       };
 
       formattedComment.replies = replies
-        .filter((reply) => reply.comment_id === comment.id)
+        .filter((reply) => reply.commentId === comment.id)
         .map((reply) => ({
           id: reply.id,
-          content: reply.is_delete ? '**balasan telah dihapus**' : reply.content,
+          content: reply.isDelete ? '**balasan telah dihapus**' : reply.content,
           date: reply.date,
           username: reply.username,
         }));

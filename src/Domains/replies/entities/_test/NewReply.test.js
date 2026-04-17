@@ -12,6 +12,7 @@ describe('a NewReply entities', () => {
   it('should throw error when payload did not meet data type specification', () => {
     const payload = {
       content: 123,
+      threadId: 'thread-123',
       commentId: 'comment-123',
       owner: 'user-123',
     };
@@ -22,6 +23,7 @@ describe('a NewReply entities', () => {
   it('should create newReply object correctly', () => {
     const payload = {
       content: 'sebuah balasan',
+      threadId: 'thread-123',
       commentId: 'comment-123',
       owner: 'user-123',
     };
@@ -29,7 +31,8 @@ describe('a NewReply entities', () => {
     const newReply = new NewReply(payload);
 
     expect(newReply.content).toEqual(payload.content);
-    expect(newReply.comment_id).toEqual(payload.commentId);
+    expect(newReply.threadId).toEqual(payload.threadId);
+    expect(newReply.commentId).toEqual(payload.commentId);
     expect(newReply.owner).toEqual(payload.owner);
   });
 });

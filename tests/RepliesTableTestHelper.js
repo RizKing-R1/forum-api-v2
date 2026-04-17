@@ -1,18 +1,16 @@
-/* eslint-disable camelcase */
-/* istanbul ignore file */
 import pool from '../src/Infrastructures/database/postgres/pool.js';
 
 const RepliesTableTestHelper = {
   async addReply({
     id = 'reply-123',
-    comment_id = 'comment-123',
+    commentId = 'comment-123',
     content = 'sebuah balasan',
     owner = 'user-123',
     date = new Date().toISOString(),
   }) {
     const query = {
       text: 'INSERT INTO replies VALUES($1, $2, $3, $4, $5, $6)',
-      values: [id, comment_id, content, owner, false, date],
+      values: [id, commentId, content, owner, false, date],
     };
 
     await pool.query(query);
@@ -25,11 +23,18 @@ const RepliesTableTestHelper = {
     };
 
     const result = await pool.query(query);
-    return result.rows;
+    return result.rows.map((row) => ({
+      id: row.id,
+      commentId: row.comment_id,
+      content: row.content,
+      owner: row.owner,
+      isDelete: row.is_delete,
+      date: row.date,
+    }));
   },
 
   async cleanTable() {
-    await pool.query('TRUNCATE TABLE replies CASCADE');
+    await pool.query('DELETE FROM replies WHERE 1=1');
   },
 };
 

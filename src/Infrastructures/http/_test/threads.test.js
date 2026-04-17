@@ -2,6 +2,9 @@ import pool from '../../database/postgres/pool.js';
 import UsersTableTestHelper from '../../../../tests/UsersTableTestHelper.js';
 import AuthenticationsTableTestHelper from '../../../../tests/AuthenticationsTableTestHelper.js';
 import ThreadsTableTestHelper from '../../../../tests/ThreadsTableTestHelper.js';
+import CommentsTableTestHelper from '../../../../tests/CommentsTableTestHelper.js';
+import RepliesTableTestHelper from '../../../../tests/RepliesTableTestHelper.js';
+import LikesTableTestHelper from '../../../../tests/LikesTableTestHelper.js';
 import container from '../../container.js';
 import createServer from '../createServer.js';
 import request from 'supertest';
@@ -13,6 +16,9 @@ describe('/threads endpoint', () => {
   });
 
   afterEach(async () => {
+    await LikesTableTestHelper.cleanTable();
+    await RepliesTableTestHelper.cleanTable();
+    await CommentsTableTestHelper.cleanTable();
     await ThreadsTableTestHelper.cleanTable();
     await AuthenticationsTableTestHelper.cleanTable();
     await UsersTableTestHelper.cleanTable();
@@ -20,21 +26,18 @@ describe('/threads endpoint', () => {
 
   describe('when POST /threads', () => {
     it('should response 201 and persisted thread', async () => {
-      // Arrange
       const requestPayload = {
         title: 'dicoding',
         body: 'secret',
       };
       const server = await createServer(container);
 
-      // Mendaftarkan user baru
       await request(server).post('/users').send({
         username: 'dicoding',
         password: 'secret_password',
         fullname: 'Dicoding Indonesia',
       });
 
-      // Melakukan login untuk mendapatkan access token
       const authResponse = await request(server).post('/authentications').send({
         username: 'dicoding',
         password: 'secret_password',
@@ -42,13 +45,11 @@ describe('/threads endpoint', () => {
 
       const { accessToken } = authResponse.body.data;
 
-      // Action: Mengirim request penambahan thread dengan access token
       const response = await request(server)
         .post('/threads')
         .set('Authorization', `Bearer ${accessToken}`)
         .send(requestPayload);
 
-      // Assert
       expect(response.status).toEqual(201);
       expect(response.body.status).toEqual('success');
       expect(response.body.data.addedThread).toBeDefined();
@@ -79,7 +80,6 @@ describe('/threads endpoint', () => {
     });
 
     it('should response 500 when server encounters unexpected error', async () => {
-      // Arrange: create container that throws generic Error
       const fakeContainer = {
         getInstance: () => ({
           execute: () => { throw new Error('server error'); },
@@ -100,14 +100,12 @@ describe('/threads endpoint', () => {
 
   describe('when GET /threads/{threadId}', () => {
     it('should response 200 and return thread detail correctly', async () => {
-      // Arrange
       const server = await createServer(container);
 
       await request(server).post('/users').send({ username: 'dicoding', password: 'secret_password', fullname: 'Dicoding Indonesia' });
       const authResponse = await request(server).post('/authentications').send({ username: 'dicoding', password: 'secret_password' });
       const { accessToken } = authResponse.body.data;
 
-      // Add thread
       const threadResponse = await request(server)
         .post('/threads')
         .set('Authorization', `Bearer ${accessToken}`)
@@ -115,14 +113,12 @@ describe('/threads endpoint', () => {
 
       const threadId = threadResponse.body.data.addedThread.id;
 
-      // Add un-deleted comment
       const commentRes1 = await request(server)
         .post(`/threads/${threadId}/comments`)
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ content: 'komentar pertama' });
       const commentId1 = commentRes1.body.data.addedComment.id;
 
-      // Add deleted comment
       const commentRes2 = await request(server)
         .post(`/threads/${threadId}/comments`)
         .set('Authorization', `Bearer ${accessToken}`)
@@ -132,13 +128,11 @@ describe('/threads endpoint', () => {
         .delete(`/threads/${threadId}/comments/${deletedCommentId}`)
         .set('Authorization', `Bearer ${accessToken}`);
 
-      // Add normal reply to comment 1
       await request(server)
         .post(`/threads/${threadId}/comments/${commentId1}/replies`)
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ content: 'balasan biasa' });
 
-      // Add deleted reply to comment 1
       const replyRes2 = await request(server)
         .post(`/threads/${threadId}/comments/${commentId1}/replies`)
         .set('Authorization', `Bearer ${accessToken}`)
@@ -148,10 +142,8 @@ describe('/threads endpoint', () => {
         .delete(`/threads/${threadId}/comments/${commentId1}/replies/${deletedReplyId}`)
         .set('Authorization', `Bearer ${accessToken}`);
 
-      // Action
       const response = await request(server).get(`/threads/${threadId}`);
 
-      // Assert
       expect(response.status).toEqual(200);
       expect(response.body.status).toEqual('success');
       expect(response.body.data.thread).toBeDefined();
@@ -164,7 +156,6 @@ describe('/threads endpoint', () => {
       expect(response.body.data.thread.comments[1].content).toEqual('**komentar telah dihapus**');
       expect(response.body.data.thread.comments[0].is_delete).toBeUndefined();
 
-      // Assert Replies
       expect(response.body.data.thread.comments[0].replies).toHaveLength(2);
       expect(response.body.data.thread.comments[0].replies[0].content).toEqual('balasan biasa');
       expect(response.body.data.thread.comments[0].replies[1].content).toEqual('**balasan telah dihapus**');

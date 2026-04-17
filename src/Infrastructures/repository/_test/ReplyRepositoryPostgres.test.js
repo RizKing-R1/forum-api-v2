@@ -1,8 +1,9 @@
-/* eslint-disable camelcase */
 import RepliesTableTestHelper from '../../../../tests/RepliesTableTestHelper.js';
 import CommentsTableTestHelper from '../../../../tests/CommentsTableTestHelper.js';
 import ThreadsTableTestHelper from '../../../../tests/ThreadsTableTestHelper.js';
+import AuthenticationsTableTestHelper from '../../../../tests/AuthenticationsTableTestHelper.js';
 import UsersTableTestHelper from '../../../../tests/UsersTableTestHelper.js';
+import LikesTableTestHelper from '../../../../tests/LikesTableTestHelper.js';
 import NewReply from '../../../Domains/replies/entities/NewReply.js';
 import AddedReply from '../../../Domains/replies/entities/AddedReply.js';
 import pool from '../../database/postgres/pool.js';
@@ -12,9 +13,11 @@ import AuthorizationError from '../../../Commons/exceptions/AuthorizationError.j
 
 describe('ReplyRepositoryPostgres', () => {
   afterEach(async () => {
+    await LikesTableTestHelper.cleanTable();
     await RepliesTableTestHelper.cleanTable();
     await CommentsTableTestHelper.cleanTable();
     await ThreadsTableTestHelper.cleanTable();
+    await AuthenticationsTableTestHelper.cleanTable();
     await UsersTableTestHelper.cleanTable();
   });
 
@@ -26,10 +29,11 @@ describe('ReplyRepositoryPostgres', () => {
     it('should persist new reply and return added reply correctly', async () => {
       await UsersTableTestHelper.addUser({ id: 'user-123', username: 'dicoding' });
       await ThreadsTableTestHelper.addThread({ id: 'thread-123', owner: 'user-123' });
-      await CommentsTableTestHelper.addComment({ id: 'comment-123', thread_id: 'thread-123', owner: 'user-123' });
+      await CommentsTableTestHelper.addComment({ id: 'comment-123', threadId: 'thread-123', owner: 'user-123' });
 
       const newReply = new NewReply({
         content: 'sebuah balasan',
+        threadId: 'thread-123',
         commentId: 'comment-123',
         owner: 'user-123',
       });
@@ -45,10 +49,11 @@ describe('ReplyRepositoryPostgres', () => {
     it('should return added reply correctly', async () => {
       await UsersTableTestHelper.addUser({ id: 'user-123', username: 'dicoding' });
       await ThreadsTableTestHelper.addThread({ id: 'thread-123', owner: 'user-123' });
-      await CommentsTableTestHelper.addComment({ id: 'comment-123', thread_id: 'thread-123', owner: 'user-123' });
+      await CommentsTableTestHelper.addComment({ id: 'comment-123', threadId: 'thread-123', owner: 'user-123' });
 
       const newReply = new NewReply({
         content: 'sebuah balasan',
+        threadId: 'thread-123',
         commentId: 'comment-123',
         owner: 'user-123',
       });
@@ -75,8 +80,8 @@ describe('ReplyRepositoryPostgres', () => {
     it('should not throw NotFoundError when reply exists', async () => {
       await UsersTableTestHelper.addUser({ id: 'user-123' });
       await ThreadsTableTestHelper.addThread({ id: 'thread-123', owner: 'user-123' });
-      await CommentsTableTestHelper.addComment({ id: 'comment-123', thread_id: 'thread-123', owner: 'user-123' });
-      await RepliesTableTestHelper.addReply({ id: 'reply-123', comment_id: 'comment-123', owner: 'user-123' });
+      await CommentsTableTestHelper.addComment({ id: 'comment-123', threadId: 'thread-123', owner: 'user-123' });
+      await RepliesTableTestHelper.addReply({ id: 'reply-123', commentId: 'comment-123', owner: 'user-123' });
 
       const replyRepositoryPostgres = new ReplyRepositoryPostgres(pool, {});
 
@@ -94,8 +99,8 @@ describe('ReplyRepositoryPostgres', () => {
     it('should throw AuthorizationError when owner is not the same', async () => {
       await UsersTableTestHelper.addUser({ id: 'user-123' });
       await ThreadsTableTestHelper.addThread({ id: 'thread-123', owner: 'user-123' });
-      await CommentsTableTestHelper.addComment({ id: 'comment-123', thread_id: 'thread-123', owner: 'user-123' });
-      await RepliesTableTestHelper.addReply({ id: 'reply-123', comment_id: 'comment-123', owner: 'user-123' });
+      await CommentsTableTestHelper.addComment({ id: 'comment-123', threadId: 'thread-123', owner: 'user-123' });
+      await RepliesTableTestHelper.addReply({ id: 'reply-123', commentId: 'comment-123', owner: 'user-123' });
 
       const replyRepositoryPostgres = new ReplyRepositoryPostgres(pool, {});
 
@@ -105,8 +110,8 @@ describe('ReplyRepositoryPostgres', () => {
     it('should not throw any error when owner is the same', async () => {
       await UsersTableTestHelper.addUser({ id: 'user-123' });
       await ThreadsTableTestHelper.addThread({ id: 'thread-123', owner: 'user-123' });
-      await CommentsTableTestHelper.addComment({ id: 'comment-123', thread_id: 'thread-123', owner: 'user-123' });
-      await RepliesTableTestHelper.addReply({ id: 'reply-123', comment_id: 'comment-123', owner: 'user-123' });
+      await CommentsTableTestHelper.addComment({ id: 'comment-123', threadId: 'thread-123', owner: 'user-123' });
+      await RepliesTableTestHelper.addReply({ id: 'reply-123', commentId: 'comment-123', owner: 'user-123' });
 
       const replyRepositoryPostgres = new ReplyRepositoryPostgres(pool, {});
 
@@ -115,18 +120,18 @@ describe('ReplyRepositoryPostgres', () => {
   });
 
   describe('deleteReply function', () => {
-    it('should soft delete reply correctly by changing is_delete to true', async () => {
+    it('should soft delete reply correctly by changing isDelete to true', async () => {
       await UsersTableTestHelper.addUser({ id: 'user-123' });
       await ThreadsTableTestHelper.addThread({ id: 'thread-123', owner: 'user-123' });
-      await CommentsTableTestHelper.addComment({ id: 'comment-123', thread_id: 'thread-123', owner: 'user-123' });
-      await RepliesTableTestHelper.addReply({ id: 'reply-123', comment_id: 'comment-123', owner: 'user-123' });
+      await CommentsTableTestHelper.addComment({ id: 'comment-123', threadId: 'thread-123', owner: 'user-123' });
+      await RepliesTableTestHelper.addReply({ id: 'reply-123', commentId: 'comment-123', owner: 'user-123' });
 
       const replyRepositoryPostgres = new ReplyRepositoryPostgres(pool, {});
 
       await replyRepositoryPostgres.deleteReply('reply-123');
 
       const replies = await RepliesTableTestHelper.findReplyById('reply-123');
-      expect(replies[0].is_delete).toEqual(true);
+      expect(replies[0].isDelete).toEqual(true);
     });
   });
 
@@ -135,21 +140,19 @@ describe('ReplyRepositoryPostgres', () => {
       await UsersTableTestHelper.addUser({ id: 'user-123', username: 'dicoding' });
       await UsersTableTestHelper.addUser({ id: 'user-321', username: 'johndoe' });
       await ThreadsTableTestHelper.addThread({ id: 'thread-123', owner: 'user-123' });
-      await CommentsTableTestHelper.addComment({ id: 'comment-123', thread_id: 'thread-123', owner: 'user-123' });
+      await CommentsTableTestHelper.addComment({ id: 'comment-123', threadId: 'thread-123', owner: 'user-123' });
 
-      // Add older
       await RepliesTableTestHelper.addReply({
         id: 'reply-1',
-        comment_id: 'comment-123',
+        commentId: 'comment-123',
         owner: 'user-123',
         content: 'balasan pertama',
         date: '2021-08-08T07:22:33.555Z',
       });
 
-      // Add newer
       await RepliesTableTestHelper.addReply({
         id: 'reply-2',
-        comment_id: 'comment-123',
+        commentId: 'comment-123',
         owner: 'user-321',
         content: 'balasan kedua',
         date: '2021-08-08T07:26:21.338Z',
@@ -161,19 +164,19 @@ describe('ReplyRepositoryPostgres', () => {
       expect(replies).toHaveLength(2);
       expect(replies[0]).toStrictEqual({
         id: 'reply-1',
-        comment_id: 'comment-123',
+        commentId: 'comment-123',
         content: 'balasan pertama',
         date: '2021-08-08T07:22:33.555Z',
         username: 'dicoding',
-        is_delete: false,
+        isDelete: false,
       });
       expect(replies[1]).toStrictEqual({
         id: 'reply-2',
-        comment_id: 'comment-123',
+        commentId: 'comment-123',
         content: 'balasan kedua',
         date: '2021-08-08T07:26:21.338Z',
         username: 'johndoe',
-        is_delete: false,
+        isDelete: false,
       });
     });
   });
